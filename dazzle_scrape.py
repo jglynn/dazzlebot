@@ -34,23 +34,27 @@ def scrape_il(draw_url):
     html = page.read().decode("utf-8")
     soup = BeautifulSoup(html, "html.parser")
     latest_draw = soup.find("div", class_="latest-draw")
-    draw_date = latest_draw.find("div", class_="lp-resultsstate-drawdate")
     fireball = latest_draw.find("li", class_="orange")
     event = latest_draw.find("div",class_="TOD")
+    draw_date = latest_draw.find("div", class_="lp-resultsstate-drawdate")
+    date = parse_il_date(draw_date.text)
     return { 
             "game": "Fireball",
-            "date" : convert_il_date(draw_date.text), 
+            "date" : format_date(date),
+            "timestamp": date.timestamp(),
             "event" : event.text.upper(), 
             "ball" : fireball.text 
         }  
 
-def convert_il_date(date_string):
+def parse_il_date(date_string):
     # Input: Saturday, November 21, 2020
-    # Output: 05/17/2020
     input_date_format = "%A, %B %d, %Y"
-    output_date_format = "%m/%d/%Y"
-    parse_date = datetime.strptime(date_string, input_date_format)
+    return datetime.strptime(date_string, input_date_format)
     return parse_date.strftime(output_date_format)
+
+def format_date(date):
+    output_date_format = "%m/%d/%Y"
+    return date.strftime(output_date_format)
 
 def persist(db, draw_result):
     doc_id = key(draw_result)
@@ -68,7 +72,7 @@ def db_init(args):
         CLOUDANT_URL = args['db_config']['url']
     elif os.path.isfile('config.json'):
         print("Loading local config")
-        with open('config.json') as f:
+        with open('db-config.json') as f:
             cfg = json.load(f)
             CLOUDANT_USERNAME = cfg['username']
             CLOUDANT_PASSWORD = cfg['password']
@@ -83,6 +87,7 @@ def create_doc(db, doc_id, record):
         'type': 'LottoResult',
         'game': 'Fireball',
         'date': record['date'],
+        'timestamp' : record['timestamp']
         'event': record['event'],
         'ball': record['ball']
     }
@@ -92,7 +97,7 @@ def exists(db, key):
     return Document(db, key).exists()
 
 def key(record):
-    return ':'.join([record['game'], record['date'], record['event']])
+    return ':'.join([record['game'], str(record['timestamp']), record['event']])
 
 def db_client_teardown(client):
     client.disconnect()
