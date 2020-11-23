@@ -41,3 +41,7 @@ The [IBM Python runtime](https://cloud.ibm.com/docs/openwhisk?topic=openwhisk-ru
 
     `ibmcloud fn action update dazzle_scrape dazzle_scrape.py`
 
+## Database
+
+Lotto records are persisted to a Cloudant instance named `lottodb` see [(admin console)](https://7e06cc45-79b7-4b54-b3b2-8d23b5f13268-bluemix.cloudant.com/dashboard.html#/database/lottodb/_all_docs)
+
