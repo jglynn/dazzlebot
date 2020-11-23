@@ -92,7 +92,7 @@ def exists(db, key):
     return Document(db, key).exists()
 
 def key(record):
-    return ':'.join([record['game'], record['event'], record['date']])
+    return ':'.join([record['game'], record['date'], record['event']])
 
 def db_client_teardown(client):
     client.disconnect()
