@@ -87,7 +87,7 @@ def create_doc(db, doc_id, record):
         'type': 'LottoResult',
         'game': 'Fireball',
         'date': record['date'],
-        'timestamp' : record['timestamp']
+        'timestamp' : record['timestamp'],
         'event': record['event'],
         'ball': record['ball']
     }

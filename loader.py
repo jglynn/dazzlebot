@@ -15,6 +15,7 @@ def main():
     for doc in docs:
         record_count += persist(db, doc)
     print( { "New Records" : str(record_count) } )
+    db_client_teardown(client)
     
 def key(record):
     return ':'.join(["Fireball", str(record['timestamp']), record['event'].upper()])
@@ -76,6 +77,9 @@ def create_doc(db, doc_id, record):
 
 def exists(db, key):
     return Document(db, key).exists()
+
+def db_client_teardown(client):
+    client.disconnect()
 
 if __name__ == "__main__":
     main()
