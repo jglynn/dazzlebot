@@ -91,6 +91,10 @@ def create_doc(db, doc_id, record):
         'ball': record['ball']
     }
     result = db.create_document(new_doc)
+    if result.exists():
+        print("created record {}".format(result))
+    else:
+        print("failed to create record in Cloudant")
 
 def exists(db, key):
     return Document(db, key).exists()
