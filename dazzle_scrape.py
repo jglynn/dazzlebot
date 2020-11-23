@@ -50,7 +50,6 @@ def parse_il_date(date_string):
     # Input: Saturday, November 21, 2020
     input_date_format = "%A, %B %d, %Y"
     return datetime.strptime(date_string, input_date_format)
-    return parse_date.strftime(output_date_format)
 
 def format_date(date):
     output_date_format = "%m/%d/%Y"
