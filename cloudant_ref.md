@@ -1,13 +1,13 @@
 
 # CLOUDANT SYNTAX
 
-https://cloud.ibm.com/apidocs/cloudant#postfind
+<https://cloud.ibm.com/apidocs/cloudant#postfind>
 
 ## Find
 
 Query via selector.
 
-```
+```json
 {
    "selector": {
       "timestamp": {
@@ -28,18 +28,19 @@ Query via selector.
 ## Views
 
 ### Create View
-https://cloud.ibm.com/docs/Cloudant?topic=Cloudant-views-mapreduce
+
+<https://cloud.ibm.com/docs/Cloudant?topic=Cloudant-views-mapreduce>
 
 [Map](https://cloud.ibm.com/docs/Cloudant?topic=Cloudant-views-mapreduce#map-function-examples)
 
-```
+```json
 example
 ```
 
 [Reduce](https://cloud.ibm.com/docs/Cloudant?topic=Cloudant-views-mapreduce#reduce-functions)
 
 
-```
+```json
 {
     "views" : {
         "countFireball" : {
@@ -52,11 +53,11 @@ example
 
 ### Query A View
 
-https://cloud.ibm.com/docs/Cloudant?topic=Cloudant-using-views
+<https://cloud.ibm.com/docs/Cloudant?topic=Cloudant-using-views>
 
-```
+`lottodb/_design/countFireballDesign/_view/by_ball?group=true`
 
-lottodb/_design/countFireballDesign/_view/by_ball?group=true
+```json
 
 {"rows":[
     {"key":"0","value":66},
@@ -72,6 +73,3 @@ lottodb/_design/countFireballDesign/_view/by_ball?group=true
 ]}
 
 ```
-
-
-

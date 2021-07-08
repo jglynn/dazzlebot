@@ -1,4 +1,5 @@
 # dazzlebot
+
 A crummy scraper that gathers lottery results
 
 There are [betters options](https://www.magayo.com) for source data but they cost monies.

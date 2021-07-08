@@ -1,3 +1,4 @@
-urllib3==1.25.9
+urllib3>=1.26.5
 beautifulSoup4==4.9.3
+cloudscraper==1.2.58
 cloudant==2.4.0

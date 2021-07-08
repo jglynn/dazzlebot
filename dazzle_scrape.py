@@ -10,8 +10,9 @@ import os
 import sys
 import json
 import cloudant
+#import cloudscraper
 from cloudant.document import Document
-from datetime import datetime, date
+from datetime import datetime, date, timezone
 from bs4 import BeautifulSoup
 from urllib.request import Request, urlopen
 
@@ -19,36 +20,53 @@ AGENT = "Mozilla/5.0 (iPhone; CPU iPhone OS 10_3 like Mac OS X) AppleWebKit/602.
 
 def main(args):
     (client, db) = db_init(args)
-    il_draws = [ "https://www.lotterypost.com/game/53/results", "https://www.lotterypost.com/game/49/results"]
+    evening_draw =  "https://www.lotteryusa.com/illinois/daily-3/"
+    midday_draw = "https://www.lotteryusa.com/illinois/midday-3/"
     record_count = 0
-    for draw in il_draws:
-        result = scrape_il(draw)
-        record_count += persist(db, result)
+    record_count += process_feed(db, evening_draw, "EVENING")
+    record_count += process_feed(db, midday_draw, "MIDDAY")
     result = { "New Records" : str(record_count) }
     db_client_teardown(client)
     return result
 
-def scrape_il(draw_url):
+def process_feed(db, draw_url, draw_event):
+    print("fetching {} for {}".format(draw_url,draw_event))
+    record_count = 0
+    results = scrape_il(draw_url, draw_event)
+    for result in results:
+        record_count += persist(db, result)
+    return record_count
+
+def scrape_il(draw_url, draw_event):
+    html = fetch_page(draw_url)
+    soup = BeautifulSoup(html, "html.parser")
+    draws = soup.find_all("tr", class_="c-game-table__item")
+    results = []
+    for draw in draws:
+        date_time = draw.find("time", class_="c-game-table__game-date")
+        if date_time:
+            draw_datetime = parse_date(date_time['datetime'])
+            draw_obj = {
+                "game": "Fireball",
+                "event": draw_event.upper(),
+                "date": format_date(draw_datetime),
+                "timestamp": draw_datetime.replace(tzinfo=timezone.utc).timestamp(),
+                "ball":  draw.find("span", class_="c-result__ball--fire").text
+            }
+            results.append(draw_obj)
+
+    return results
+
+def fetch_page(draw_url):
+    #scraper = cloudscraper.create_scraper()    
+    #html = scraper.get(draw_url).text
     req = Request(draw_url , headers={'User-Agent': AGENT})
     page = urlopen(req)
-    html = page.read().decode("utf-8")
-    soup = BeautifulSoup(html, "html.parser")
-    latest_draw = soup.find("div", class_="latest-draw")
-    fireball = latest_draw.find("li", class_="orange")
-    event = latest_draw.find("div",class_="TOD")
-    draw_date = latest_draw.find("div", class_="lp-resultsstate-drawdate")
-    date = parse_il_date(draw_date.text)
-    return { 
-            "game": "Fireball",
-            "date" : format_date(date),
-            "timestamp": date.timestamp(),
-            "event" : event.text.upper(), 
-            "ball" : fireball.text 
-        }  
+    return page.read().decode("utf-8")
 
-def parse_il_date(date_string):
+def parse_date(date_string):
     # Input: Saturday, November 21, 2020
-    input_date_format = "%A, %B %d, %Y"
+    input_date_format = "%Y-%m-%d"
     return datetime.strptime(date_string, input_date_format)
 
 def format_date(date):
@@ -69,7 +87,7 @@ def db_init(args):
         CLOUDANT_USERNAME = args['db_config']['username']
         CLOUDANT_PASSWORD = args['db_config']['password']
         CLOUDANT_URL = args['db_config']['url']
-    elif os.path.isfile('config.json'):
+    elif os.path.isfile('db-config.json'):
         print("Loading local config")
         with open('db-config.json') as f:
             cfg = json.load(f)
@@ -79,6 +97,13 @@ def db_init(args):
     client = cloudant.Cloudant(CLOUDANT_USERNAME, CLOUDANT_PASSWORD, url=CLOUDANT_URL, connect=True)
     db = client.create_database("lottodb", throw_on_exists=False)
     return (client, db)
+
+
+def delete_doc(db, id, rev):
+    try:
+        doc = db[id]
+    except KeyError:
+        print("doc does not exist with id:{}".format(id))
 
 def create_doc(db, doc_id, record):
     new_doc = {
